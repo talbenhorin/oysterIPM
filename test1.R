@@ -1,5 +1,8 @@
 rm(list=ls(all=TRUE))
 
+library(ggplot2)
+require(deSolve)
+
 sirmod = function(t, y, parms) {
   # Pull state variables from y vector
   S = y[1]
@@ -18,3 +21,19 @@ sirmod = function(t, y, parms) {
   # Return list of gradients
   list(res)
 }
+
+times = seq(0, 26, by = 1/10)
+parms = c(mu = 0, N = 1, beta = 2, gamma = 1/2)
+start = c(S = 0.999, I = 0.001, R = 0)
+
+out=ode(y=start, times=times, func=sirmod, parms=
+          parms)
+out=as.data.frame(out)
+
+p <- ggplot(out, aes(x = time)) +
+  geom_line(aes(y = S), color = "darkgoldenrod") +
+  geom_line(aes(y = I), color = "darkorchid") +
+  geom_line(aes(y = R), color = "firebrick") +
+  theme_classic()
+
+
