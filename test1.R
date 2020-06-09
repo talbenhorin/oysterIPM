@@ -36,4 +36,29 @@ p <- ggplot(out, aes(x = time)) +
   geom_line(aes(y = R), color = "firebrick") +
   theme_classic()
 
-
+#Calculate R0
+R0=parms["beta"]/(parms["gamma"]+parms["mu"])
+#Adjust margins to accommodate a second right axis
+par(mar = c(5,5,2,5))
+#Plot state variables
+plot(x=out$time, y=out$S, ylab="Fraction", xlab="Time",
+     type="l")
+lines(x=out$time, y=out$I, col="red")
+lines(x=out$time, y=out$R, col="green")
+#Add vertical line at turnover point
+xx=out$time[which.max(out$I)]
+lines(c(xx,xx), c(1/R0,max(out$I)), lty=3)
+#prepare to superimpose 2nd plot
+par(new=TRUE)
+#plot effective reproductive ratio (w/o axes)
+plot(x=out$time, y=R0*out$S, type="l", lty=2, lwd=2,
+     col="black", axes=FALSE, xlab=NA, ylab=NA,
+     ylim=c(-.5, 4.5))
+lines(c(xx, 26), c(1,1), lty=3)
+#Add right-hand axis for RE
+axis(side = 4)
+mtext(side = 4, line = 4, expression(R[E]))
+#Add legend
+legend("right", legend=c("S", "I", "R",
+                         expression(R[E])), lty=c(1,1,1, 2),
+       col=c("black", "red", "green", "black"))
