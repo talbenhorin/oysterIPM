@@ -36,6 +36,7 @@ p <- ggplot(out, aes(x = time)) +
   geom_line(aes(y = R), color = "firebrick") +
   theme_classic()
 
+
 #Calculate R0
 R0=parms["beta"]/(parms["gamma"]+parms["mu"])
 #Adjust margins to accommodate a second right axis
@@ -62,3 +63,10 @@ mtext(side = 4, line = 4, expression(R[E]))
 legend("right", legend=c("S", "I", "R",
                          expression(R[E])), lty=c(1,1,1, 2),
        col=c("black", "red", "green", "black"))
+
+
+require(rootSolve)
+equil=runsteady(y=c(S=1-1E-5, I=1E-5, R=0),
+                times=c(0,1E5), func=sirmod, parms=parms)
+round(equil$y, 3)
+#2 percent of S escape infection and 98 percent become infected by the end of the epidemic
