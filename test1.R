@@ -3,6 +3,7 @@ rm(list=ls(all=TRUE))
 library(ggplot2)
 require(deSolve)
 
+##2.2 Numerical Integration of SIR Model
 sirmod = function(t, y, parms) {
   # Pull state variables from y vector
   S = y[1]
@@ -25,6 +26,7 @@ sirmod = function(t, y, parms) {
 times = seq(0, 26, by = 1/10)
 parms = c(mu = 0, N = 1, beta = 2, gamma = 1/2)
 start = c(S = 0.999, I = 0.001, R = 0)
+##start is proportion of population in each group
 
 out=ode(y=start, times=times, func=sirmod, parms=
           parms)
@@ -65,8 +67,103 @@ legend("right", legend=c("S", "I", "R",
        col=c("black", "red", "green", "black"))
 
 
+##2.3 Final Epidemic Size
+
 require(rootSolve)
 equil=runsteady(y=c(S=1-1E-5, I=1E-5, R=0),
                 times=c(0,1E5), func=sirmod, parms=parms)
 round(equil$y, 3)
-#2 percent of S escape infection and 98 percent become infected by the end of the epidemic
+##2 percent of S escape infection and 98 percent become infected by the end of the epidemic
+
+#Candidate values for R0 and beta
+R0 = seq(0.1, 5, length=50)
+betas= R0 * 1/2
+#Vector of NAs to be filled with numbers
+f = rep(NA, 50)
+#Loop over i from 1, 2, ..., 50
+for(i in seq(from=1, to=50, by=1)){
+  equil=runsteady(y=c(S=1-1E-5, I=1E-5,
+                      R=0), times=c(0,1E5), func=sirmod,
+                  parms=c(mu=0, N=1, beta=betas[i], gamma=1/2))
+  f[i]=equil$y["R"]
+}
+plot(R0, f, type="l", xlab=expression(R[0]))
+curve(1-exp(-x), from=1, to=5, add=TRUE, col="red")
+
+##I don't understand what "f" represents in the above equation/graph - figure 2.3 in book
+##final epidemic size is a function of R0
+
+
+#Define function - fraction of susceptibles that escape infection
+fn=function(x, R0){
+  exp(-(R0*(1-x))) - x
+}
+
+1-uniroot(fn, lower = 0, upper = 1-1E-9,
+          tol = 1e-9, R0=2)$root
+## [1] 0.7968121
+#For R0 = 2, final epidemic size is 79.6%
+#check accuracy of approximation:
+exp(-2)-uniroot(fn, lower = 0, upper = 1-1E-9,
+                tol = 1e-9, R0=2)$root
+## [1] -0.06785259
+#approximation from 1-uniroot function. Approximation is offf by 6.7% points
+
+
+##2.4 Open epidemic
+##mu > 0 - recruitment of new susceptibles
+
+times = seq(0, 52*50, by=.1)
+#life expectancy of 50 years and stable population size gives mu a weekly birth rate of 1/(50*52)
+#integrate model for 50 years
+parms = c(mu = 1/(50*52), N = 1, beta = 2,
+          gamma = 1/2)
+start = c(S=0.19, I=0.01, R = 0.8)
+#19% of initial pop is susceptible, 1% infected
+out = as.data.frame(ode(y=start, times=times,
+                        func=sirmod, parms=parms))
+par(mfrow=c(1,2)) #Make room for side-by-side plots
+plot(times, out$I, ylab="Fraction", xlab="Time",
+     type="l")
+plot(out$S, out$I, type="l", xlab="Susceptible",
+     ylab="Infected")
+
+
+
+##2.5 Phase Analysis
+
+simod = function(t, y, parameters) {
+  S = y[1]
+  I = y[2]
+  beta = parameters["beta"]
+  mu = parameters["mu"]
+  gamma = parameters["gamma"]
+  N = parameters["N"]
+  dS = mu * (N - S) - beta * S * I/N
+  dI = beta * S * I/N - (mu + gamma) * I
+  res = c(dS, dI)
+  list(res)
+}
+
+
+require(phaseR)
+#Plot vector field
+fld=flowField(simod, x.lim=c(0.15,0.35), y.lim=c(0,.01),
+              parameters=parms, system="two.dim", add=FALSE,
+              ylab="I", xlab="S")
+#Add trajectory
+out = as.data.frame(ode(y = c(S=0.19, I=0.01), times=
+                          seq(0, 52*100, by=.1), func=simod, parms=parms))
+lines(out$S, out$I, col="red")
+
+#Add S-isocline
+curve(parms["mu"]*(1/x-1)/parms["beta"], 0.15, 0.35,
+      xlab="S", ylab="I", add=TRUE)
+#Add I-isocline
+shat=(parms["gamma"]+parms["mu"])/parms["beta"]
+lines(rep(shat, 2), c(0,0.01))
+legend("topright", legend=c("Transient", "Isoclines"),
+       lty=c(1, 1), col=c("red", "black"))
+
+##I don't understand isoclines
+##flowfield arrows are not showing up on my plot
