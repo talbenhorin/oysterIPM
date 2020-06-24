@@ -199,22 +199,22 @@ xstart2 = log(c(S=.06, I=c(0.001, rep(0.0001,
                                       paras2["u"]-1)), R = 0.0001))
 out = as.data.frame(ode(xstart2, times, chainSIR,
                         paras2))
-plot(times, exp(out[,3]), ylab="Infected", xlab=
-       "Time", ylim=c(0, 0.01), type=’l’)
-paras2["u"] =2
+plot(times,exp(out[,3]),ylab="Infected",xlab="Time",ylim=c(0, 0.01),type="l")
+
+paras2["u"]=2
 xstart2 = log(c(S=.06, I=c(0.001, rep(0.0001/
                                         paras2["u"], paras2["u"]-1)), R = 0.0001))
 out2 = as.data.frame(ode(xstart2, times, chainSIR,
                          paras2))
-lines(times, apply(exp(out2[,-c(1:2,length(out2))]),
-                   1 ,sum), col=’blue’)
-paras2["u"] =73
+lines(times, apply(exp(out2[,-c(1:2,length(out2))]),1,sum),col="blue")
+
+paras2["u"]=73
 xstart2 = log(c(S=.06, I=c(0.001, rep(0.0001/
                                         paras2["u"], paras2["u"]-1)), R = 0.0001))
 out3 = as.data.frame(ode(xstart2, times, chainSIR,
                          paras2))
-lines(times, apply(exp(out3[,-c(1:2,length(out3))]),
-                   1, sum), col=’red’, lwd=2, lty=2)
+lines(times, apply(exp(out3[,-c(1:2,length(out3))]), 1,sum),col="red",lwd=2,lty=2)
+
 paras2["u"] =500
 xstart2 = log(c(S=.06, I=c(0.001, rep(0.0001/
                                         paras2["u"], paras2["u"]-1)), R = 0.0001))
