@@ -569,5 +569,4 @@ compute_quartiles = function(est_matrix){
   lower = apply(est_matrix, 2, lq)
   
   return(list(lower=lower, median=median, upper=upper))
-  
 }
